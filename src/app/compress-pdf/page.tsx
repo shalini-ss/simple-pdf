@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
 import { jsPDF } from "jspdf";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+import Link from "next/link";
 
 export default function CompressPdfPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -38,21 +36,32 @@ export default function CompressPdfPage() {
       return null;
     }
 
-    return unit === "MB" ? value * 1024 * 1024 : value * 1024;
+    return unit === "MB"
+      ? value * 1024 * 1024
+      : value * 1024;
   }
 
   async function createCompressedPdf(
-    pdf: pdfjsLib.PDFDocumentProxy,
+    pdf: any,
     scale: number,
     quality: number
   ): Promise<Blob> {
     let outputPdf: jsPDF | null = null;
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+    for (
+      let pageNumber = 1;
+      pageNumber <= pdf.numPages;
+      pageNumber++
+    ) {
       const page = await pdf.getPage(pageNumber);
 
-      const originalViewport = page.getViewport({ scale: 1 });
-      const viewport = page.getViewport({ scale });
+      const originalViewport = page.getViewport({
+        scale: 1,
+      });
+
+      const viewport = page.getViewport({
+        scale,
+      });
 
       const canvas = document.createElement("canvas");
 
@@ -68,14 +77,25 @@ export default function CompressPdfPage() {
       }
 
       context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
-      await page.render({
+      const renderTask = page.render({
+        canvas,
         canvasContext: context,
         viewport,
-      }).promise;
+      });
 
-      const imageData = canvas.toDataURL("image/jpeg", quality);
+      await renderTask.promise;
+
+      const imageData = canvas.toDataURL(
+        "image/jpeg",
+        quality
+      );
 
       const pageWidth = originalViewport.width;
       const pageHeight = originalViewport.height;
@@ -83,7 +103,9 @@ export default function CompressPdfPage() {
       if (!outputPdf) {
         outputPdf = new jsPDF({
           orientation:
-            pageWidth > pageHeight ? "landscape" : "portrait",
+            pageWidth > pageHeight
+              ? "landscape"
+              : "portrait",
           unit: "pt",
           format: [pageWidth, pageHeight],
           compress: true,
@@ -91,7 +113,9 @@ export default function CompressPdfPage() {
       } else {
         outputPdf.addPage(
           [pageWidth, pageHeight],
-          pageWidth > pageHeight ? "landscape" : "portrait"
+          pageWidth > pageHeight
+            ? "landscape"
+            : "portrait"
         );
       }
 
@@ -146,18 +170,61 @@ export default function CompressPdfPage() {
 
       const fileBytes = await file.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: fileBytes,
-      }).promise;
+      /*
+       * IMPORTANT:
+       * pdfjs-dist must be imported only in the browser.
+       * This prevents the DOMMatrix error during
+       * Next.js server prerendering.
+       */
+      const pdfjsLib = await import("pdfjs-dist");
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "/pdf.worker.min.mjs";
+
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: fileBytes,
+        })
+        .promise;
 
       const scales = [
-        3.0, 2.8, 2.6, 2.4, 2.2, 2.0, 1.8, 1.6, 1.5, 1.4,
-        1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3,
+        3.0,
+        2.8,
+        2.6,
+        2.4,
+        2.2,
+        2.0,
+        1.8,
+        1.6,
+        1.5,
+        1.4,
+        1.3,
+        1.2,
+        1.1,
+        1.0,
+        0.9,
+        0.8,
+        0.7,
+        0.6,
+        0.5,
+        0.4,
+        0.3,
       ];
 
       const qualities = [
-        1.0, 0.98, 0.95, 0.92, 0.88, 0.84, 0.80,
-        0.75, 0.70, 0.65, 0.60, 0.55, 0.50,
+        1.0,
+        0.98,
+        0.95,
+        0.92,
+        0.88,
+        0.84,
+        0.80,
+        0.75,
+        0.70,
+        0.65,
+        0.60,
+        0.55,
+        0.50,
       ];
 
       let bestBlob: Blob | null = null;
@@ -191,13 +258,30 @@ export default function CompressPdfPage() {
 
           if (
             difference >= 0 &&
-            difference <= Math.max(
-              1024,
-              targetBytes * 0.005
-            )
+            difference <=
+              Math.max(
+                1024,
+                targetBytes * 0.005
+              )
           ) {
             bestBlob = blob;
             bestSize = blob.size;
+            break;
+          }
+        }
+
+        if (bestBlob && bestSize > 0) {
+          const remaining =
+            targetBytes - bestSize;
+
+          if (
+            remaining >= 0 &&
+            remaining <=
+              Math.max(
+                1024,
+                targetBytes * 0.005
+              )
+          ) {
             break;
           }
         }
@@ -211,12 +295,17 @@ export default function CompressPdfPage() {
         return;
       }
 
-      const finalSizeKB = bestBlob.size / 1024;
-      const finalSizeMB = bestBlob.size / (1024 * 1024);
+      const finalSizeKB =
+        bestBlob.size / 1024;
 
-      const url = URL.createObjectURL(bestBlob);
+      const finalSizeMB =
+        bestBlob.size / (1024 * 1024);
 
-      const link = document.createElement("a");
+      const url =
+        URL.createObjectURL(bestBlob);
+
+      const link =
+        document.createElement("a");
 
       link.href = url;
       link.download = "compressed.pdf";
@@ -229,11 +318,15 @@ export default function CompressPdfPage() {
 
       if (unit === "MB") {
         setMessage(
-          `Done! Your compressed PDF is ${finalSizeMB.toFixed(2)} MB.`
+          `Done! Your compressed PDF is ${finalSizeMB.toFixed(
+            2
+          )} MB.`
         );
       } else {
         setMessage(
-          `Done! Your compressed PDF is ${finalSizeKB.toFixed(1)} KB.`
+          `Done! Your compressed PDF is ${finalSizeKB.toFixed(
+            1
+          )} KB.`
         );
       }
     } catch (err) {
@@ -263,7 +356,10 @@ export default function CompressPdfPage() {
       <header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
 
-          <a href="/" className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
               S
             </div>
@@ -271,14 +367,14 @@ export default function CompressPdfPage() {
             <span className="text-[18px] font-semibold tracking-tight">
               SimplePDF
             </span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/#tools"
             className="text-sm font-medium text-[#666] transition hover:text-[#171717]"
           >
             Tools
-          </a>
+          </Link>
 
         </div>
       </header>
@@ -347,7 +443,7 @@ export default function CompressPdfPage() {
           )}
 
           {/* ERROR */}
-          {error && (
+          {error && !file && (
             <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-center text-sm text-red-600">
               {error}
             </div>
@@ -377,7 +473,12 @@ export default function CompressPdfPage() {
                       <p className="mt-1 text-xs text-[#999]">
                         Current size:{" "}
                         <span className="font-medium text-[#666]">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                          {(
+                            file.size /
+                            1024 /
+                            1024
+                          ).toFixed(2)}{" "}
+                          MB
                         </span>
                       </p>
 
@@ -420,7 +521,9 @@ export default function CompressPdfPage() {
                     step="0.01"
                     value={targetSize}
                     onChange={(event) => {
-                      setTargetSize(event.target.value);
+                      setTargetSize(
+                        event.target.value
+                      );
                       setError("");
                       setMessage("");
                     }}
@@ -432,15 +535,22 @@ export default function CompressPdfPage() {
                     value={unit}
                     onChange={(event) => {
                       setUnit(
-                        event.target.value as "MB" | "KB"
+                        event.target.value as
+                          | "MB"
+                          | "KB"
                       );
                       setError("");
                       setMessage("");
                     }}
                     className="rounded-lg bg-[#ECEDE8] px-4 py-2 text-sm font-medium text-[#555] outline-none"
                   >
-                    <option value="MB">MB</option>
-                    <option value="KB">KB</option>
+                    <option value="MB">
+                      MB
+                    </option>
+
+                    <option value="KB">
+                      KB
+                    </option>
                   </select>
 
                 </div>
@@ -480,7 +590,10 @@ export default function CompressPdfPage() {
                 <button
                   type="button"
                   onClick={compressPdf}
-                  disabled={!targetSize || isCompressing}
+                  disabled={
+                    !targetSize ||
+                    isCompressing
+                  }
                   className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#171717] px-6 py-4 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#DCDDD7] disabled:text-[#999] disabled:shadow-none"
                 >
                   {isCompressing ? (
@@ -511,7 +624,6 @@ export default function CompressPdfPage() {
                 )}
 
               </div>
-
             </div>
           )}
 
@@ -526,6 +638,7 @@ export default function CompressPdfPage() {
           {/* PRIVACY */}
           <div className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-[#999]">
             <span>✓</span>
+
             <span>
               Your PDF is processed in your browser and is
               not uploaded to our server.
@@ -540,12 +653,12 @@ export default function CompressPdfPage() {
 
         <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[#888] sm:flex-row sm:items-center sm:justify-between">
 
-          <a
+          <Link
             href="/"
             className="font-semibold text-[#333]"
           >
             SimplePDF
-          </a>
+          </Link>
 
           <span>
             Simple tools for everyday PDF work.

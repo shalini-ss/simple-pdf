@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
 import { jsPDF } from "jspdf";
 import Link from "next/link";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 type Rotation = 0 | 90 | 180 | 270;
 
@@ -25,6 +22,15 @@ export default function RotatePdfPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  async function loadPdfJs() {
+    const pdfjsLib = await import("pdfjs-dist");
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "/pdf.worker.min.mjs";
+
+    return pdfjsLib;
+  }
+
   async function handleFile(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
@@ -43,11 +49,15 @@ export default function RotatePdfPage() {
       setError("");
       setMessage("Loading PDF pages...");
 
+      const pdfjsLib = await loadPdfJs();
+
       const fileBytes = await selectedFile.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: fileBytes,
-      }).promise;
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: fileBytes,
+        })
+        .promise;
 
       const rotations: Record<number, Rotation> = {};
       const images: Record<number, string> = {};
@@ -88,6 +98,7 @@ export default function RotatePdfPage() {
         );
 
         await page.render({
+          canvas,
           canvasContext: context,
           viewport,
         }).promise;
@@ -163,11 +174,15 @@ export default function RotatePdfPage() {
     try {
       setMessage("Preparing rotated PDF...");
 
+      const pdfjsLib = await loadPdfJs();
+
       const fileBytes = await file.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: fileBytes,
-      }).promise;
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: fileBytes,
+        })
+        .promise;
 
       let outputPdf: jsPDF | null = null;
 
@@ -187,9 +202,10 @@ export default function RotatePdfPage() {
 
         const scale = 1.5;
 
-        const originalViewport = page.getViewport({
-          scale: 1,
-        });
+        const originalViewport =
+          page.getViewport({
+            scale: 1,
+          });
 
         const viewport = page.getViewport({
           scale,
@@ -219,6 +235,7 @@ export default function RotatePdfPage() {
         );
 
         await page.render({
+          canvas,
           canvasContext: context,
           viewport,
         }).promise;

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { jsPDF } from "jspdf";
+import Link from "next/link";
 
 type ImageFile = {
   id: string;
@@ -133,8 +134,10 @@ export default function JpgToPdfPage() {
       {/* NAVBAR */}
       <header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-
-          <a href="/" className="flex items-center gap-2.5">
+          <Link
+  href="/"
+  className="flex items-center gap-2.5"
+></Link>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
               S
             </div>
@@ -142,16 +145,11 @@ export default function JpgToPdfPage() {
             <span className="text-[18px] font-semibold tracking-tight">
               SimplePDF
             </span>
-          </a>
-
-          <a
-            href="/#tools"
-            className="text-sm font-medium text-[#666] transition hover:text-[#171717]"
-          >
-            Tools
-          </a>
-
-        </div>
+          
+<Link href="/#tools">
+  All tools →
+</Link>
+ </div>
       </header>
 
       {/* MAIN */}
@@ -377,12 +375,12 @@ export default function JpgToPdfPage() {
 
         <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[#888] sm:flex-row sm:items-center sm:justify-between">
 
-          <a
-            href="/"
-            className="font-semibold text-[#333]"
-          >
-            SimplePDF
-          </a>
+          <Link
+  href="/"
+  className="font-semibold text-[#333]"
+>
+  SimplePDF
+</Link>
 
           <span>
             Simple tools for everyday PDF work.

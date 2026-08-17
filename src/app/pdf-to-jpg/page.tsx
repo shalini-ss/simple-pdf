@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
 import JSZip from "jszip";
 import Link from "next/link";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export default function PdfToJpgPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,9 +13,9 @@ export default function PdfToJpgPage() {
   async function handleFile(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
-    if (!event.target.files?.[0]) return;
+    const selectedFile = event.target.files?.[0];
 
-    const selectedFile = event.target.files[0];
+    if (!selectedFile) return;
 
     if (selectedFile.type !== "application/pdf") {
       setError("Please select a PDF file.");
@@ -27,7 +24,16 @@ export default function PdfToJpgPage() {
     }
 
     try {
+      setError("");
+
       const fileBytes = await selectedFile.arrayBuffer();
+
+      // IMPORTANT:
+      // pdfjs-dist is loaded only in the browser.
+      const pdfjsLib = await import("pdfjs-dist");
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "/pdf.worker.min.mjs";
 
       const pdf = await pdfjsLib.getDocument({
         data: fileBytes,
@@ -35,9 +41,11 @@ export default function PdfToJpgPage() {
 
       setFile(selectedFile);
       setPageCount(pdf.numPages);
-      setError("");
     } catch (err) {
       console.error("PDF READ ERROR:", err);
+
+      setFile(null);
+      setPageCount(0);
 
       setError(
         err instanceof Error
@@ -55,6 +63,12 @@ export default function PdfToJpgPage() {
       setError("");
 
       const fileBytes = await file.arrayBuffer();
+
+      // Load PDF.js only in browser
+      const pdfjsLib = await import("pdfjs-dist");
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "/pdf.worker.min.mjs";
 
       const pdf = await pdfjsLib.getDocument({
         data: fileBytes,
@@ -77,29 +91,42 @@ export default function PdfToJpgPage() {
 
         const canvas = document.createElement("canvas");
 
-        const context = canvas.getContext("2d");
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+
+        const context = canvas.getContext("2d", {
+          alpha: false,
+        });
 
         if (!context) {
           throw new Error("Could not create canvas.");
         }
 
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
+        context.fillStyle = "#ffffff";
+        context.fillRect(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
 
         const renderTask = page.render({
-          canvasContext: context as CanvasRenderingContext2D,
+          canvas,
+          canvasContext: context,
           viewport,
         });
 
         await renderTask.promise;
 
-        const jpgBlob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob(
-            (blob) => resolve(blob),
-            "image/jpeg",
-            0.92
-          );
-        });
+        const jpgBlob = await new Promise<Blob | null>(
+          (resolve) => {
+            canvas.toBlob(
+              (blob) => resolve(blob),
+              "image/jpeg",
+              0.92
+            );
+          }
+        );
 
         if (!jpgBlob) {
           throw new Error(
@@ -138,7 +165,9 @@ export default function PdfToJpgPage() {
       console.error(err);
 
       setError(
-        "Something went wrong while converting the PDF."
+        err instanceof Error
+          ? err.message
+          : "Something went wrong while converting the PDF."
       );
     } finally {
       setIsConverting(false);
@@ -183,7 +212,6 @@ export default function PdfToJpgPage() {
           {/* PAGE INTRO */}
           <div className="text-center">
 
-            {/* Tool icon */}
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#DCDDD7] bg-white text-sm font-bold text-[#171717] shadow-sm">
               JPG
             </div>
@@ -274,10 +302,10 @@ export default function PdfToJpgPage() {
               {file && (
                 <div>
 
-                  {/* Selected file heading */}
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                     <div>
+
                       <div className="flex items-center gap-3">
 
                         <h2 className="text-xl font-semibold tracking-tight">
@@ -296,9 +324,9 @@ export default function PdfToJpgPage() {
                       <p className="mt-1.5 text-sm text-[#777]">
                         Your PDF is ready to be converted.
                       </p>
+
                     </div>
 
-                    {/* Change file */}
                     <label className="cursor-pointer self-start rounded-lg border border-[#DCDDD7] bg-white px-4 py-2 text-sm font-medium text-[#555] transition hover:bg-[#F7F7F5] hover:text-[#171717]">
                       Change PDF
 
@@ -317,12 +345,10 @@ export default function PdfToJpgPage() {
 
                     <div className="flex items-center gap-4">
 
-                      {/* PDF */}
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#171717] text-[10px] font-bold tracking-wide text-white">
                         PDF
                       </div>
 
-                      {/* File information */}
                       <div className="min-w-0 flex-1">
 
                         <p className="truncate text-sm font-medium text-[#333]">
@@ -340,7 +366,6 @@ export default function PdfToJpgPage() {
 
                       </div>
 
-                      {/* Pages */}
                       <div className="hidden text-right sm:block">
 
                         <p className="text-sm font-medium text-[#333]">
@@ -362,7 +387,6 @@ export default function PdfToJpgPage() {
                   {/* CONVERSION RESULT */}
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
 
-                    {/* Input */}
                     <div className="rounded-2xl border border-[#DCDDD7] bg-white p-5">
 
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#999]">
@@ -376,6 +400,7 @@ export default function PdfToJpgPage() {
                         </div>
 
                         <div>
+
                           <p className="text-sm font-medium">
                             PDF document
                           </p>
@@ -386,13 +411,13 @@ export default function PdfToJpgPage() {
                               ? "page"
                               : "pages"}
                           </p>
+
                         </div>
 
                       </div>
 
                     </div>
 
-                    {/* Output */}
                     <div className="rounded-2xl border border-[#DCDDD7] bg-[#F3F4F0] p-5">
 
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#999]">
@@ -406,6 +431,7 @@ export default function PdfToJpgPage() {
                         </div>
 
                         <div>
+
                           <p className="text-sm font-medium">
                             JPG images
                           </p>
@@ -413,6 +439,7 @@ export default function PdfToJpgPage() {
                           <p className="mt-1 text-xs text-[#999]">
                             One image per page
                           </p>
+
                         </div>
 
                       </div>
@@ -431,6 +458,7 @@ export default function PdfToJpgPage() {
                       </div>
 
                       <div>
+
                         <p className="text-sm font-medium text-[#333]">
                           Processed in your browser
                         </p>
@@ -440,6 +468,7 @@ export default function PdfToJpgPage() {
                           JPG images are packaged into
                           one ZIP file for download.
                         </p>
+
                       </div>
 
                     </div>
@@ -453,6 +482,7 @@ export default function PdfToJpgPage() {
                     disabled={isConverting}
                     className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#171717] px-6 py-4 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#E1E2DC] disabled:text-[#999] disabled:shadow-none"
                   >
+
                     {isConverting ? (
                       <>
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#777] border-t-white" />
@@ -464,6 +494,7 @@ export default function PdfToJpgPage() {
                         <span>→</span>
                       </>
                     )}
+
                   </button>
 
                   {/* ERROR */}
@@ -507,11 +538,13 @@ export default function PdfToJpgPage() {
               href="/"
               className="flex items-center gap-2.5"
             >
+
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
                 S
               </div>
 
               <div>
+
                 <p className="text-sm font-semibold text-[#333]">
                   SimplePDF
                 </p>
@@ -519,7 +552,9 @@ export default function PdfToJpgPage() {
                 <p className="mt-0.5 text-xs text-[#999]">
                   Simple tools for your files.
                 </p>
+
               </div>
+
             </Link>
 
             <div className="flex gap-6 text-sm text-[#777]">
