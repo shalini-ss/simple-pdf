@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://simplepdf.vercel.app"),
+  metadataBase: new URL("https://simple-pdf-one.vercel.app"),
 
   title: {
     default: "SimplePDF - Free Online PDF Tools",
