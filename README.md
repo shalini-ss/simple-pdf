@@ -150,7 +150,7 @@ Upload → Process → Download
 
 Example:
 
-![SimplePDF Demo](./screenshots/demo.gif)
+![SimplePDF Demo](./demo/Video.mp4)
 
 ---
 
