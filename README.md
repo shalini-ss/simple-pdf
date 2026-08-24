@@ -133,37 +133,10 @@ There is no user account system, database, or server-side file-storage system in
 
 ---
 
-## 📸 Screenshots
+## 🎥 Demo
 
-### Home Page
+[▶️ Watch SimplePDF Demo](./demo/video.mp4)
 
-![SimplePDF Home Page](./screenshots/home.png)
-
-### Merge PDF
-
-![Merge PDF](./screenshots/merge-pdf.png)
-
-### Split PDF
-
-![Split PDF](./screenshots/split-pdf.png)
-
-### JPG to PDF
-
-![JPG to PDF](./screenshots/jpg-to-pdf.png)
-
-### PDF to JPG
-
-![PDF to JPG](./screenshots/pdf-to-jpg.png)
-
-### Compress PDF
-
-![Compress PDF](./screenshots/compress-pdf.png)
-
-### Rotate PDF
-
-![Rotate PDF](./screenshots/rotate-pdf.png)
-
-> Add your actual screenshots inside a `screenshots` folder in the repository.
 
 ---
 

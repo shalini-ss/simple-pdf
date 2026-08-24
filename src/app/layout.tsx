@@ -22,6 +22,9 @@ export const metadata: Metadata = {
 
   description:
     "Free online PDF tools to compress, merge, split, rotate, and convert PDF files. Simple, fast, private, and easy to use.",
+    alternates: {
+  canonical: "/",
+},
 
   keywords: [
     "PDF tools",
