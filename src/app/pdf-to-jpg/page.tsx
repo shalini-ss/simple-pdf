@@ -7,8 +7,10 @@ import Link from "next/link";
 export default function PdfToJpgPage() {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
-  const [isConverting, setIsConverting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   async function handleFile(
     event: React.ChangeEvent<HTMLInputElement>
@@ -20,86 +22,102 @@ export default function PdfToJpgPage() {
     if (selectedFile.type !== "application/pdf") {
       setError("Please select a PDF file.");
       setFile(null);
+      setPageCount(0);
       return;
     }
 
     try {
+      setIsLoading(true);
       setError("");
+      setMessage("Loading PDF...");
 
-      const fileBytes = await selectedFile.arrayBuffer();
+      const bytes = await selectedFile.arrayBuffer();
 
-      // IMPORTANT:
-      // pdfjs-dist is loaded only in the browser.
       const pdfjsLib = await import("pdfjs-dist");
 
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "/pdf.worker.min.mjs";
 
-      const pdf = await pdfjsLib.getDocument({
-        data: fileBytes,
-      }).promise;
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: bytes,
+        })
+        .promise;
 
       setFile(selectedFile);
       setPageCount(pdf.numPages);
+      setMessage(
+        `${pdf.numPages} ${
+          pdf.numPages === 1 ? "page" : "pages"
+        } loaded.`
+      );
     } catch (err) {
-      console.error("PDF READ ERROR:", err);
+      console.error(err);
 
       setFile(null);
       setPageCount(0);
 
       setError(
-        err instanceof Error
-          ? err.message
-          : "This PDF could not be read."
+        "Could not load the PDF. It may be corrupted or password-protected."
       );
+
+      setMessage("");
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function convertToJpg() {
-    if (!file) return;
+    if (!file) {
+      setError("Please select a PDF file.");
+      return;
+    }
 
     try {
-      setIsConverting(true);
+      setIsProcessing(true);
       setError("");
+      setMessage("Preparing JPG files...");
 
-      const fileBytes = await file.arrayBuffer();
+      const bytes = await file.arrayBuffer();
 
-      // Load PDF.js only in browser
       const pdfjsLib = await import("pdfjs-dist");
 
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "/pdf.worker.min.mjs";
 
-      const pdf = await pdfjsLib.getDocument({
-        data: fileBytes,
-      }).promise;
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: bytes,
+        })
+        .promise;
 
       const zip = new JSZip();
 
-      for (
-        let pageNumber = 1;
-        pageNumber <= pdf.numPages;
-        pageNumber++
-      ) {
-        const page = await pdf.getPage(pageNumber);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        setMessage(
+          `Converting page ${i} of ${pdf.numPages}...`
+        );
 
-        const scale = 2;
+        const page = await pdf.getPage(i);
 
         const viewport = page.getViewport({
-          scale,
+          scale: 2,
         });
 
-        const canvas = document.createElement("canvas");
+        const canvas =
+          document.createElement("canvas");
 
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
 
         const context = canvas.getContext("2d", {
           alpha: false,
         });
 
         if (!context) {
-          throw new Error("Could not create canvas.");
+          throw new Error(
+            "Could not create canvas."
+          );
         }
 
         context.fillStyle = "#ffffff";
@@ -110,93 +128,119 @@ export default function PdfToJpgPage() {
           canvas.height
         );
 
-        const renderTask = page.render({
+        await page.render({
           canvas,
           canvasContext: context,
           viewport,
-        });
+        }).promise;
 
-        await renderTask.promise;
-
-        const jpgBlob = await new Promise<Blob | null>(
-          (resolve) => {
+        const blob = await new Promise<Blob | null>(
+          (resolve) =>
             canvas.toBlob(
-              (blob) => resolve(blob),
+              resolve,
               "image/jpeg",
               0.92
-            );
-          }
+            )
         );
 
-        if (!jpgBlob) {
+        if (!blob) {
           throw new Error(
-            `Could not convert page ${pageNumber}.`
+            "Could not create JPG image."
           );
         }
 
-        const jpgBytes = await jpgBlob.arrayBuffer();
-
-        zip.file(
-          `page-${pageNumber}.jpg`,
-          jpgBytes
-        );
+        zip.file(`page-${i}.jpg`, blob);
 
         canvas.width = 1;
         canvas.height = 1;
       }
 
+      setMessage("Creating ZIP file...");
+
       const zipBlob = await zip.generateAsync({
         type: "blob",
       });
 
-      const url = URL.createObjectURL(zipBlob);
+      downloadBlob(
+        zipBlob,
+        "pdf-to-jpg.zip"
+      );
 
-      const link = document.createElement("a");
+      const sizeMB =
+        zipBlob.size / (1024 * 1024);
 
-      link.href = url;
-      link.download = "pdf-pages.zip";
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      URL.revokeObjectURL(url);
+      setMessage(
+        `Done! ${pdf.numPages} ${
+          pdf.numPages === 1
+            ? "page"
+            : "pages"
+        } converted and downloaded (${sizeMB.toFixed(
+          2
+        )} MB).`
+      );
     } catch (err) {
       console.error(err);
 
       setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong while converting the PDF."
+        "Something went wrong while converting the PDF."
       );
+
+      setMessage("");
     } finally {
-      setIsConverting(false);
+      setIsProcessing(false);
     }
   }
 
-  return (
-    <main className="min-h-screen bg-[#F7F7F5] text-[#171717]">
+  function downloadBlob(
+    blob: Blob,
+    filename: string
+  ) {
+    const url =
+      URL.createObjectURL(blob);
 
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  function removeFile() {
+    setFile(null);
+    setPageCount(0);
+    setError("");
+    setMessage("");
+  }
+
+  return (
+    <main className="min-h-screen bg-[#F7F8FC] text-[#18181B]">
+
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-6">
 
           <Link
             href="/"
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-3"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5B4BDB] text-sm font-bold text-white shadow-sm">
               S
             </div>
 
-            <span className="text-[18px] font-semibold tracking-tight">
+            <span className="text-[18px] font-semibold tracking-tight text-[#18181B]">
               SimplePDF
             </span>
           </Link>
 
           <Link
             href="/#tools"
-            className="text-sm font-medium text-[#666] transition hover:text-[#171717]"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F1EFFF] hover:text-[#5B4BDB]"
           >
             All tools →
           </Link>
@@ -204,75 +248,83 @@ export default function PdfToJpgPage() {
         </div>
       </header>
 
-      {/* MAIN */}
-      <section className="px-6 pb-20 pt-10 sm:pt-14">
 
-        <div className="mx-auto max-w-5xl">
+      {/* HERO */}
+      <section className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F3F0FF] via-white to-[#EFF7FF] px-5 py-14 sm:px-6 sm:py-16">
 
-          {/* PAGE INTRO */}
-          <div className="text-center">
+        <div className="mx-auto max-w-4xl text-center">
 
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#DCDDD7] bg-white text-sm font-bold text-[#171717] shadow-sm">
-              JPG
-            </div>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sm font-bold text-[#5B4BDB] shadow-sm ring-1 ring-[#E3E0FA]">
+            JPG
+          </div>
 
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">
-              PDF to JPG
-            </h1>
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-[#18181B] sm:text-5xl">
+            PDF to JPG
+          </h1>
 
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#666] sm:text-base">
-              Convert every page of your PDF into
-              high-quality JPG images.
-            </p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#70727A] sm:text-base">
+            Convert PDF pages into high-quality JPG
+            images directly in your browser.
+          </p>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-[#666870]">
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">
+                ✓
+              </span>
+              Free to use
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">
+                ✓
+              </span>
+              No signup
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">
+                ✓
+              </span>
+              Browser based
+            </span>
 
           </div>
 
-          {/* WORKSPACE */}
-          <div className="mt-9 overflow-hidden rounded-3xl border border-[#DCDDD7] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+        </div>
 
-            {/* Workspace header */}
-            <div className="border-b border-[#E5E5E1] bg-[#F3F4F0] px-6 py-5 sm:px-8">
+      </section>
 
-              <div className="flex items-center justify-between">
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8A8A84]">
-                    Convert
-                  </p>
+      {/* MAIN */}
+      <section className="px-5 py-12 sm:px-6 sm:py-16">
 
-                  <h2 className="mt-1 text-lg font-semibold">
-                    PDF to JPG
-                  </h2>
-                </div>
+        <div className="mx-auto max-w-4xl">
 
-                <div className="hidden rounded-full border border-[#DCDDD7] bg-white px-3 py-1.5 text-xs font-medium text-[#777] sm:block">
-                  Browser based
-                </div>
-
-              </div>
-
-            </div>
+          <div className="overflow-hidden rounded-3xl border border-[#E1E3E8] bg-white shadow-[0_12px_40px_rgba(20,20,40,0.06)]">
 
             <div className="p-5 sm:p-8">
 
               {/* UPLOAD */}
               {!file && (
-                <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D8D9D3] bg-[#F8F8F6] px-6 py-14 text-center transition hover:border-[#AFAFA9] hover:bg-[#F3F4F0]">
 
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl font-medium shadow-sm ring-1 ring-[#DFE0DA] transition group-hover:-translate-y-0.5">
-                    +
+                <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D9DBE3] bg-[#FAFAFC] px-5 py-12 text-center transition hover:border-[#B9B1F4] hover:bg-[#F7F5FF] sm:py-14">
+
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-2xl font-semibold text-[#5B4BDB] shadow-sm ring-1 ring-[#E1E3E8] transition group-hover:-translate-y-1">
+                    ↑
                   </div>
 
-                  <h3 className="mt-5 text-lg font-semibold">
+                  <h2 className="mt-6 text-xl font-semibold text-[#18181B]">
                     Add your PDF
-                  </h3>
+                  </h2>
 
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#777]">
-                    Choose a PDF file and convert its
-                    pages into separate JPG images.
+                  <p className="mt-2 max-w-md text-sm leading-6 text-[#777980]">
+                    Select the PDF you want to convert
+                    into JPG images.
                   </p>
 
-                  <span className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#171717] px-6 py-3.5 text-sm font-medium text-white shadow-sm transition group-hover:bg-[#303030]">
+                  <span className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.18)] transition group-hover:-translate-y-0.5 group-hover:bg-[#4D3FC4]">
                     Choose PDF
                     <span>↑</span>
                   </span>
@@ -289,30 +341,47 @@ export default function PdfToJpgPage() {
                   </p>
 
                 </label>
+
               )}
 
-              {/* ERROR BEFORE FILE */}
+
+              {/* LOADING */}
+              {isLoading && (
+
+                <div className="mt-5 rounded-xl border border-[#E1E3E8] bg-[#FAFAFC] px-5 py-4 text-center text-sm text-[#666870]">
+                  Loading PDF...
+                </div>
+
+              )}
+
+
+              {/* ERROR */}
               {error && !file && (
+
                 <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-center text-sm text-red-600">
                   {error}
                 </div>
+
               )}
 
-              {/* FILE SELECTED */}
-              {file && (
-                <div>
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* FILE */}
+              {file && !isLoading && (
+
+                <div className="mt-10">
+
+                  {/* HEADER */}
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                     <div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
 
-                        <h2 className="text-xl font-semibold tracking-tight">
-                          Ready to convert
+                        <h2 className="text-xl font-semibold tracking-tight text-[#18181B]">
+                          Selected PDF
                         </h2>
 
-                        <span className="rounded-full bg-[#ECEDE8] px-3 py-1 text-xs font-medium text-[#666]">
+                        <span className="rounded-full bg-[#F1EFFF] px-3 py-1 text-xs font-semibold text-[#5B4BDB]">
                           {pageCount}{" "}
                           {pageCount === 1
                             ? "page"
@@ -321,152 +390,88 @@ export default function PdfToJpgPage() {
 
                       </div>
 
-                      <p className="mt-1.5 text-sm text-[#777]">
-                        Your PDF is ready to be converted.
+                      <p className="mt-2 text-sm leading-6 text-[#777980]">
+                        Convert every page into a
+                        separate JPG image.
                       </p>
 
                     </div>
 
-                    <label className="cursor-pointer self-start rounded-lg border border-[#DCDDD7] bg-white px-4 py-2 text-sm font-medium text-[#555] transition hover:bg-[#F7F7F5] hover:text-[#171717]">
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      className="self-start rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F3F3F5] hover:text-[#18181B] sm:self-auto"
+                    >
                       Change PDF
-
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleFile}
-                        className="hidden"
-                      />
-                    </label>
+                    </button>
 
                   </div>
+
 
                   {/* FILE CARD */}
-                  <div className="mt-6 rounded-2xl border border-[#DCDDD7] bg-[#F8F8F6] p-5">
+                  <div className="mt-7 flex items-center gap-4 rounded-2xl border border-[#E1E3E8] bg-white p-4 transition hover:border-[#D3CFFF] hover:shadow-[0_10px_25px_rgba(91,75,219,0.06)]">
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                      PDF
+                    </div>
 
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#171717] text-[10px] font-bold tracking-wide text-white">
-                        PDF
-                      </div>
+                    <div className="min-w-0 flex-1">
 
-                      <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-[#333]">
+                        {file.name}
+                      </p>
 
-                        <p className="truncate text-sm font-medium text-[#333]">
-                          {file.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-[#999]">
-                          {(
-                            file.size /
-                            1024 /
-                            1024
-                          ).toFixed(2)}{" "}
-                          MB
-                        </p>
-
-                      </div>
-
-                      <div className="hidden text-right sm:block">
-
-                        <p className="text-sm font-medium text-[#333]">
-                          {pageCount}
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-[#999]">
-                          {pageCount === 1
-                            ? "page"
-                            : "pages"}
-                        </p>
-
-                      </div>
+                      <p className="mt-1 text-xs text-[#999]">
+                        {(
+                          file.size /
+                          1024 /
+                          1024
+                        ).toFixed(2)}{" "}
+                        MB · {pageCount}{" "}
+                        {pageCount === 1
+                          ? "page"
+                          : "pages"}
+                      </p>
 
                     </div>
 
                   </div>
 
-                  {/* CONVERSION RESULT */}
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
 
-                    <div className="rounded-2xl border border-[#DCDDD7] bg-white p-5">
+                  {/* CONVERSION INFO */}
+                  <div className="mt-10">
 
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#999]">
-                        Input
-                      </p>
+                    <h2 className="text-xl font-semibold tracking-tight text-[#18181B]">
+                      Convert PDF to JPG
+                    </h2>
 
-                      <div className="mt-4 flex items-center gap-3">
-
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#171717] text-[9px] font-bold text-white">
-                          PDF
-                        </div>
-
-                        <div>
-
-                          <p className="text-sm font-medium">
-                            PDF document
-                          </p>
-
-                          <p className="mt-1 text-xs text-[#999]">
-                            {pageCount}{" "}
-                            {pageCount === 1
-                              ? "page"
-                              : "pages"}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                    <div className="rounded-2xl border border-[#DCDDD7] bg-[#F3F4F0] p-5">
-
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#999]">
-                        Output
-                      </p>
-
-                      <div className="mt-4 flex items-center gap-3">
-
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-[9px] font-bold text-[#171717] ring-1 ring-[#DCDDD7]">
-                          JPG
-                        </div>
-
-                        <div>
-
-                          <p className="text-sm font-medium">
-                            JPG images
-                          </p>
-
-                          <p className="mt-1 text-xs text-[#999]">
-                            One image per page
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[#777980]">
+                      Each PDF page will be converted
+                      into a separate JPG image.
+                    </p>
 
                   </div>
 
-                  {/* INFO */}
-                  <div className="mt-5 rounded-2xl border border-[#E1E2DC] bg-[#F7F7F5] px-5 py-4">
 
-                    <div className="flex items-start gap-3">
+                  {/* INFO CARD */}
+                  <div className="mt-7 rounded-2xl border border-[#E3E1FA] bg-[#F7F5FF] p-5">
 
-                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-semibold text-[#555] ring-1 ring-[#E0E0DB]">
-                        ✓
+                    <div className="flex gap-3">
+
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sm text-[#5B4BDB] shadow-sm ring-1 ring-[#E1DFFC]">
+                        ✦
                       </div>
 
                       <div>
 
                         <p className="text-sm font-medium text-[#333]">
-                          Processed in your browser
+                          Automatic conversion
                         </p>
 
-                        <p className="mt-1 text-xs leading-5 text-[#777]">
-                          Your PDF is converted locally.
-                          JPG images are packaged into
-                          one ZIP file for download.
+                        <p className="mt-1 text-sm leading-6 text-[#777980]">
+                          SimplePDF converts every page
+                          into a JPG image and packages
+                          multiple images into one ZIP file.
                         </p>
 
                       </div>
@@ -475,18 +480,19 @@ export default function PdfToJpgPage() {
 
                   </div>
 
+
                   {/* CONVERT BUTTON */}
                   <button
                     type="button"
                     onClick={convertToJpg}
-                    disabled={isConverting}
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#171717] px-6 py-4 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#E1E2DC] disabled:text-[#999] disabled:shadow-none"
+                    disabled={isProcessing}
+                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.16)] transition hover:-translate-y-0.5 hover:bg-[#4D3FC4] disabled:cursor-not-allowed disabled:bg-[#E5E5E7] disabled:text-[#999] disabled:shadow-none"
                   >
 
-                    {isConverting ? (
+                    {isProcessing ? (
                       <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#777] border-t-white" />
-                        Converting pages...
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                        Converting PDF...
                       </>
                     ) : (
                       <>
@@ -497,24 +503,49 @@ export default function PdfToJpgPage() {
 
                   </button>
 
+
                   {/* ERROR */}
                   {error && (
+
                     <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
                       {error}
                     </div>
+
+                  )}
+
+
+                  {/* MESSAGE */}
+                  {message && (
+
+                    <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#E3E1FA] bg-[#F7F5FF] px-5 py-4 text-sm text-[#555]">
+
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#5B4BDB] shadow-sm">
+                        ✓
+                      </div>
+
+                      <span>
+                        {message}
+                      </span>
+
+                    </div>
+
                   )}
 
                 </div>
+
               )}
 
             </div>
 
           </div>
 
-          {/* PRIVACY */}
-          <div className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-[#999]">
 
-            <span className="text-[#555]">✓</span>
+          {/* PRIVACY */}
+          <div className="mt-7 flex items-center justify-center gap-2 px-4 text-center text-xs leading-5 text-[#999]">
+
+            <span className="text-emerald-500">
+              ✓
+            </span>
 
             <span>
               Your PDF is processed directly in your
@@ -523,12 +554,118 @@ export default function PdfToJpgPage() {
 
           </div>
 
+
+          {/* HOW IT WORKS */}
+          <div className="mt-16 border-t border-[#E3E5EA] pt-14">
+
+            <div className="text-center">
+
+              <p className="text-sm font-semibold text-[#5B4BDB]">
+                HOW IT WORKS
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#18181B]">
+                Convert PDF to JPG in three simple steps
+              </h2>
+
+            </div>
+
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  01
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Select PDF
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Choose a PDF file from your device.
+                </p>
+
+              </div>
+
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  02
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Convert pages
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Each PDF page is converted into a
+                  separate JPG image.
+                </p>
+
+              </div>
+
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  03
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Download
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Download your JPG images together
+                  in a ZIP file.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* RELATED TOOLS */}
+          <div className="mt-14 rounded-2xl border border-[#E1E3E8] bg-white p-6 sm:p-7">
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+
+                <h2 className="text-lg font-semibold text-[#18181B]">
+                  Need another PDF tool?
+                </h2>
+
+                <p className="mt-1 text-sm text-[#777980]">
+                  Explore more free tools from SimplePDF.
+                </p>
+
+              </div>
+
+              <Link
+                href="/#tools"
+                className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#F1EFFF] px-4 py-2.5 text-sm font-medium text-[#5B4BDB] transition hover:bg-[#E8E4FF]"
+              >
+                View all tools
+                <span>→</span>
+              </Link>
+
+            </div>
+
+          </div>
+
         </div>
 
       </section>
 
+
       {/* FOOTER */}
-      <footer className="border-t border-[#E2E2DE] bg-white px-6 py-8">
+      <footer className="border-t border-[#E2E4E8] bg-[#202124] px-5 py-9 text-white sm:px-6">
 
         <div className="mx-auto max-w-6xl">
 
@@ -536,60 +673,24 @@ export default function PdfToJpgPage() {
 
             <Link
               href="/"
-              className="flex items-center gap-2.5"
+              className="flex items-center gap-2.5 font-semibold"
             >
 
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5B4BDB] text-xs font-bold">
                 S
-              </div>
+              </span>
 
-              <div>
-
-                <p className="text-sm font-semibold text-[#333]">
-                  SimplePDF
-                </p>
-
-                <p className="mt-0.5 text-xs text-[#999]">
-                  Simple tools for your files.
-                </p>
-
-              </div>
+              SimplePDF
 
             </Link>
 
-            <div className="flex gap-6 text-sm text-[#777]">
+            <p className="text-sm text-white/45">
+              Simple tools for everyday PDF work.
+            </p>
 
-              <Link
-                href="/#tools"
-                className="transition hover:text-[#171717]"
-              >
-                Tools
-              </Link>
-
-              <Link
-                href="/#privacy"
-                className="transition hover:text-[#171717]"
-              >
-                Privacy
-              </Link>
-
-            </div>
-
-          </div>
-
-          <div className="mt-6 border-t border-[#EEEEEA] pt-5">
-
-            <div className="flex flex-col gap-2 text-xs text-[#999] sm:flex-row sm:items-center sm:justify-between">
-
-              <p>
-                © {new Date().getFullYear()} SimplePDF
-              </p>
-
-              <p>
-                Built for simple document work.
-              </p>
-
-            </div>
+            <p className="text-sm text-white/35">
+              © {new Date().getFullYear()} SimplePDF
+            </p>
 
           </div>
 

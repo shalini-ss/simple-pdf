@@ -129,72 +129,100 @@ export default function JpgToPdfPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-[#171717]">
+    <main className="min-h-screen bg-[#F7F8FC] text-[#18181B]">
 
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <Link
-  href="/"
-  className="flex items-center gap-2.5"
-></Link>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-6">
+
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5B4BDB] text-sm font-bold text-white shadow-sm">
               S
             </div>
 
-            <span className="text-[18px] font-semibold tracking-tight">
+            <span className="text-[18px] font-semibold tracking-tight text-[#18181B]">
               SimplePDF
             </span>
-          
-<Link href="/#tools">
-  All tools →
-</Link>
- </div>
+          </Link>
+
+          <Link
+            href="/#tools"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F1EFFF] hover:text-[#5B4BDB]"
+          >
+            All tools →
+          </Link>
+
+        </div>
       </header>
 
-      {/* MAIN */}
-      <section className="px-6 pb-20 pt-12 sm:pt-16">
-        <div className="mx-auto max-w-4xl">
 
-          {/* HERO */}
-          <div className="text-center">
+      {/* HERO */}
+      <section className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F3F0FF] via-white to-[#EFF7FF] px-5 py-14 sm:px-6 sm:py-16">
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-xl font-semibold shadow-sm ring-1 ring-[#E2E2DE]">
-              JPG
-            </div>
+        <div className="mx-auto max-w-4xl text-center">
 
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
-              JPG to PDF
-            </h1>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sm font-bold text-[#D97706] shadow-sm ring-1 ring-[#E5E7EB]">
+            JPG
+          </div>
 
-            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[#666] sm:text-lg">
-              Turn your images into a clean,
-              organized PDF document.
-            </p>
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-[#18181B] sm:text-5xl">
+            JPG to PDF
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#70727A] sm:text-base">
+            Convert JPG and PNG images into a clean PDF document directly
+            in your browser.
+          </p>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-[#666870]">
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Free to use
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              No signup
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Browser based
+            </span>
 
           </div>
 
-          {/* WORKSPACE */}
-          <div className="mt-12 overflow-hidden rounded-3xl border border-[#E0E0DC] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+        </div>
 
-            {/* UPLOAD */}
-            <div className="p-6 sm:p-8">
+      </section>
 
-              <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#DCDDD7] bg-[#F8F8F6] px-6 py-12 text-center transition hover:border-[#BEBFB9] hover:bg-[#F3F4F0]">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ring-1 ring-[#E2E2DE] transition group-hover:-translate-y-0.5">
+      {/* MAIN WORKSPACE */}
+      <section className="px-5 py-12 sm:px-6 sm:py-16">
+
+        <div className="mx-auto max-w-4xl">
+
+          <div className="overflow-hidden rounded-3xl border border-[#E1E3E8] bg-white shadow-[0_12px_40px_rgba(20,20,40,0.06)]">
+
+            <div className="p-5 sm:p-8">
+
+              {/* UPLOAD AREA */}
+              <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D9DBE3] bg-[#FAFAFC] px-5 py-12 text-center transition hover:border-[#B9B1F4] hover:bg-[#F7F5FF] sm:py-14">
+
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl text-[#5B4BDB] shadow-sm ring-1 ring-[#E1E3E8] transition group-hover:-translate-y-1">
                   +
                 </div>
 
-                <h2 className="mt-6 text-lg font-semibold">
+                <h2 className="mt-6 text-xl font-semibold text-[#18181B]">
                   Add your images
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-[#777]">
-                  Select one or multiple JPG or PNG images.
+                <p className="mt-2 max-w-md text-sm leading-6 text-[#777980]">
+                  Select one or multiple JPG or PNG images to create your PDF.
                 </p>
 
-                <span className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#171717] px-6 py-3.5 text-sm font-medium text-white shadow-sm transition group-hover:bg-[#303030]">
+                <span className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.18)] transition group-hover:-translate-y-0.5 group-hover:bg-[#4D3FC4]">
                   Choose Images
                   <span>↑</span>
                 </span>
@@ -213,6 +241,7 @@ export default function JpgToPdfPage() {
 
               </label>
 
+
               {/* ERROR */}
               {error && (
                 <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-center text-sm text-red-600">
@@ -220,53 +249,57 @@ export default function JpgToPdfPage() {
                 </div>
               )}
 
+
               {/* SELECTED IMAGES */}
               {images.length > 0 && (
                 <div className="mt-10">
 
+                  {/* HEADER */}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                     <div>
-                      <div className="flex items-center gap-3">
 
-                        <h2 className="text-xl font-semibold tracking-tight">
+                      <div className="flex flex-wrap items-center gap-3">
+
+                        <h2 className="text-xl font-semibold tracking-tight text-[#18181B]">
                           Selected images
                         </h2>
 
-                        <span className="rounded-full bg-[#ECEDE8] px-3 py-1 text-xs font-medium text-[#666]">
+                        <span className="rounded-full bg-[#F1EFFF] px-3 py-1 text-xs font-semibold text-[#5B4BDB]">
                           {images.length}{" "}
-                          {images.length === 1
-                            ? "image"
-                            : "images"}
+                          {images.length === 1 ? "image" : "images"}
                         </span>
 
                       </div>
 
-                      <p className="mt-2 text-sm leading-6 text-[#777]">
+                      <p className="mt-2 text-sm leading-6 text-[#777980]">
                         Images will appear in the PDF in this order.
                       </p>
+
                     </div>
 
                     <button
                       type="button"
                       onClick={clearAll}
-                      className="self-start rounded-lg px-3 py-2 text-sm font-medium text-[#666] transition hover:bg-[#F3F4F0] hover:text-[#171717] sm:self-auto"
+                      className="self-start rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F3F3F5] hover:text-[#18181B] sm:self-auto"
                     >
                       Clear all
                     </button>
 
                   </div>
 
-                  {/* GRID */}
+
+                  {/* IMAGE GRID */}
                   <div className="mt-7 grid gap-5 sm:grid-cols-2 md:grid-cols-3">
 
                     {images.map((image, index) => (
                       <div
                         key={image.id}
-                        className="group overflow-hidden rounded-2xl border border-[#DCDDD7] bg-white transition hover:-translate-y-0.5 hover:border-[#BEBFB9] hover:shadow-[0_10px_25px_rgba(0,0,0,0.06)]"
+                        className="group overflow-hidden rounded-2xl border border-[#E1E3E8] bg-white transition hover:-translate-y-0.5 hover:border-[#D3CFFF] hover:shadow-[0_10px_25px_rgba(91,75,219,0.08)]"
                       >
 
-                        <div className="relative flex h-52 items-center justify-center bg-[#F3F4F0]">
+                        {/* IMAGE */}
+                        <div className="relative flex h-52 items-center justify-center bg-[#F4F5F8]">
 
                           <img
                             src={image.preview}
@@ -274,14 +307,16 @@ export default function JpgToPdfPage() {
                             className="h-full w-full object-contain p-4"
                           />
 
-                          <div className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-semibold text-white shadow-sm">
+                          {/* NUMBER */}
+                          <div className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#5B4BDB] text-xs font-semibold text-white shadow-sm">
                             {index + 1}
                           </div>
 
+                          {/* REMOVE */}
                           <button
                             type="button"
                             onClick={() => removeImage(image.id)}
-                            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base text-[#666] shadow-sm ring-1 ring-[#DCDDD7] transition hover:bg-[#171717] hover:text-white hover:ring-[#171717]"
+                            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-base text-[#666] shadow-sm ring-1 ring-[#DCDDD7] transition hover:bg-[#18181B] hover:text-white hover:ring-[#18181B]"
                             aria-label={`Remove ${image.file.name}`}
                           >
                             ×
@@ -289,7 +324,9 @@ export default function JpgToPdfPage() {
 
                         </div>
 
-                        <div className="border-t border-[#EEEEEA] p-4">
+
+                        {/* FILE DETAILS */}
+                        <div className="border-t border-[#EEEEF1] p-4">
 
                           <p className="truncate text-sm font-medium text-[#333]">
                             {image.file.name}
@@ -306,41 +343,45 @@ export default function JpgToPdfPage() {
 
                   </div>
 
-                  {/* INFO */}
-                  <div className="mt-8 rounded-2xl border border-[#E0E0DC] bg-[#F7F7F5] p-5">
+
+                  {/* INFORMATION */}
+                  <div className="mt-8 rounded-2xl border border-[#E3E1FA] bg-[#F7F5FF] p-5">
 
                     <div className="flex gap-3">
 
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sm shadow-sm ring-1 ring-[#E2E2DE]">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sm text-[#5B4BDB] shadow-sm ring-1 ring-[#E1DFFC]">
                         ✦
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-[#333]">
+
+                        <p className="text-sm font-semibold text-[#333]">
                           Ready to create your PDF
                         </p>
 
-                        <p className="mt-1 text-sm leading-6 text-[#777]">
-                          Each selected image will be placed on
-                          its own PDF page and fitted neatly within
-                          the page.
+                        <p className="mt-1 text-sm leading-6 text-[#777980]">
+                          Each selected image will be placed on its own PDF
+                          page and fitted neatly within the page.
                         </p>
+
                       </div>
 
                     </div>
 
                   </div>
 
-                  {/* CREATE */}
+
+                  {/* CREATE BUTTON */}
                   <button
                     type="button"
                     onClick={createPdf}
                     disabled={isConverting}
-                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#171717] px-6 py-4 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#E5E5E2] disabled:text-[#999] disabled:shadow-none"
+                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.16)] transition hover:-translate-y-0.5 hover:bg-[#4D3FC4] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#E5E5E7] disabled:text-[#999] disabled:shadow-none"
                   >
+
                     {isConverting ? (
                       <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-white" />
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                         Creating PDF...
                       </>
                     ) : (
@@ -349,6 +390,7 @@ export default function JpgToPdfPage() {
                         <span>→</span>
                       </>
                     )}
+
                   </button>
 
                 </div>
@@ -358,37 +400,156 @@ export default function JpgToPdfPage() {
 
           </div>
 
-          {/* PRIVACY */}
-          <div className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-[#999]">
-            <span>✓</span>
-            <span>
-              Your images are processed directly in your browser
-              and are not uploaded to our server.
+
+          {/* PRIVACY MESSAGE */}
+          <div className="mt-7 flex items-center justify-center gap-2 px-4 text-center text-xs leading-5 text-[#999]">
+
+            <span className="text-emerald-500">
+              ✓
             </span>
+
+            <span>
+              Your images are processed directly in your browser and are not
+              uploaded to our server.
+            </span>
+
+          </div>
+
+
+          {/* HOW IT WORKS */}
+          <div className="mt-16 border-t border-[#E3E5EA] pt-14">
+
+            <div className="text-center">
+
+              <p className="text-sm font-semibold text-[#5B4BDB]">
+                HOW IT WORKS
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#18181B]">
+                Convert images in three simple steps
+              </h2>
+
+            </div>
+
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  01
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Select images
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Choose one or more JPG or PNG images.
+                </p>
+
+              </div>
+
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  02
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Create your PDF
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Your browser converts the images into PDF pages.
+                </p>
+
+              </div>
+
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  03
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Download
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Download your finished PDF when conversion is complete.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* RELATED TOOLS */}
+          <div className="mt-14 rounded-2xl border border-[#E1E3E8] bg-white p-6 sm:p-7">
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+                <h2 className="text-lg font-semibold">
+                  Need another PDF tool?
+                </h2>
+
+                <p className="mt-1 text-sm text-[#777980]">
+                  Explore more free tools from SimplePDF.
+                </p>
+              </div>
+
+              <Link
+                href="/#tools"
+                className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#F1EFFF] px-4 py-2.5 text-sm font-medium text-[#5B4BDB] transition hover:bg-[#E8E4FF]"
+              >
+                View all tools
+                <span>→</span>
+              </Link>
+
+            </div>
+
           </div>
 
         </div>
+
       </section>
 
+
       {/* FOOTER */}
-      <footer className="border-t border-[#E2E2DE] bg-[#F7F7F5] px-6 py-8">
+      <footer className="border-t border-[#E2E4E8] bg-[#202124] px-5 py-9 text-white sm:px-6">
 
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[#888] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto max-w-6xl">
 
-          <Link
-  href="/"
-  className="font-semibold text-[#333]"
->
-  SimplePDF
-</Link>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-          <span>
-            Simple tools for everyday PDF work.
-          </span>
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 font-semibold"
+            >
 
-          <span>
-            © {new Date().getFullYear()} SimplePDF
-          </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5B4BDB] text-xs font-bold">
+                S
+              </span>
+
+              SimplePDF
+
+            </Link>
+
+            <p className="text-sm text-white/45">
+              Simple tools for everyday PDF work.
+            </p>
+
+            <p className="text-sm text-white/35">
+              © {new Date().getFullYear()} SimplePDF
+            </p>
+
+          </div>
 
         </div>
 

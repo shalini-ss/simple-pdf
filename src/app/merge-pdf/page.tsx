@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { PDFDocument } from "pdf-lib";
+import Link from "next/link";
 
 type SelectedFile = {
   file: File;
@@ -14,30 +14,27 @@ export default function MergePdfPage() {
   const [isMerging, setIsMerging] = useState(false);
   const [error, setError] = useState("");
 
-  function handleFiles(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
+  function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
     if (!event.target.files) return;
 
     const selectedFiles = Array.from(event.target.files);
 
-    const invalidFile = selectedFiles.some(
+    const invalidFiles = selectedFiles.some(
       (file) => file.type !== "application/pdf"
     );
 
-    if (invalidFile) {
+    if (invalidFiles) {
       setError("Please select PDF files only.");
       return;
     }
 
     const newFiles = selectedFiles.map((file) => ({
       file,
-      id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+      id: crypto.randomUUID(),
     }));
 
     setFiles((current) => [...current, ...newFiles]);
     setError("");
-
     event.target.value = "";
   }
 
@@ -52,10 +49,7 @@ export default function MergePdfPage() {
     setError("");
   }
 
-  function moveFile(
-    index: number,
-    direction: "up" | "down"
-  ) {
+  function moveFile(index: number, direction: "up" | "down") {
     setFiles((current) => {
       const newFiles = [...current];
 
@@ -93,38 +87,29 @@ export default function MergePdfPage() {
       const mergedPdf = await PDFDocument.create();
 
       for (const item of files) {
-        const fileBytes =
-          await item.file.arrayBuffer();
+        const fileBytes = await item.file.arrayBuffer();
 
-        const pdf =
-          await PDFDocument.load(fileBytes);
+        const pdf = await PDFDocument.load(fileBytes);
 
-        const pages =
-          await mergedPdf.copyPages(
-            pdf,
-            pdf.getPageIndices()
-          );
+        const pages = await mergedPdf.copyPages(
+          pdf,
+          pdf.getPageIndices()
+        );
 
         pages.forEach((page) => {
           mergedPdf.addPage(page);
         });
       }
 
-      const pdfBytes =
-        await mergedPdf.save();
+      const pdfBytes = await mergedPdf.save();
 
-      const blob = new Blob(
-        [pdfBytes as BlobPart],
-        {
-          type: "application/pdf",
-        }
-      );
+      const blob = new Blob([pdfBytes as BlobPart], {
+        type: "application/pdf",
+      });
 
-      const url =
-        URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
-      const link =
-        document.createElement("a");
+      const link = document.createElement("a");
 
       link.href = url;
       link.download = "merged.pdf";
@@ -144,30 +129,30 @@ export default function MergePdfPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-[#171717]">
+    <main className="min-h-screen bg-[#F7F8FC] text-[#18181B]">
 
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-6">
 
           <Link
             href="/"
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-3"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5B4BDB] text-sm font-bold text-white shadow-sm">
               S
             </div>
 
-            <span className="text-[18px] font-semibold tracking-tight">
+            <span className="text-[18px] font-semibold tracking-tight text-[#18181B]">
               SimplePDF
             </span>
           </Link>
 
           <Link
             href="/#tools"
-            className="text-sm font-medium text-[#666] transition hover:text-[#171717]"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F1EFFF] hover:text-[#5B4BDB]"
           >
-            All tools
+            All tools →
           </Link>
 
         </div>
@@ -175,84 +160,72 @@ export default function MergePdfPage() {
 
 
       {/* HERO */}
-      <section className="px-6 pb-10 pt-10 sm:pb-12 sm:pt-14">
+      <section className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F3F0FF] via-white to-[#EFF7FF] px-5 py-14 sm:px-6 sm:py-16">
 
         <div className="mx-auto max-w-4xl text-center">
 
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white text-lg font-semibold shadow-sm ring-1 ring-[#E1E1DD]">
-            M
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sm font-bold text-[#5B4BDB] shadow-sm ring-1 ring-[#E3E0FA]">
+            PDF
           </div>
 
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-[#18181B] sm:text-5xl">
             Merge PDF
           </h1>
 
-          <p className="mx-auto mt-3 max-w-xl text-base leading-7 text-[#666]">
-            Combine multiple PDF files into one document
-            in the order you choose.
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#70727A] sm:text-base">
+            Combine multiple PDF files into one document in the order
+            you choose.
           </p>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-[#666870]">
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Free to use
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              No signup
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Browser based
+            </span>
+
+          </div>
 
         </div>
 
       </section>
 
 
-      {/* WORKSPACE */}
-      <section className="border-y border-[#E1E1DD] bg-[#ECEDE8] px-6 py-12 sm:py-14">
+      {/* MAIN WORKSPACE */}
+      <section className="px-5 py-12 sm:px-6 sm:py-16">
 
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-4xl">
 
-          {/* Main product box */}
-          <div className="overflow-hidden rounded-3xl border border-[#D8D9D3] bg-[#F8F8F6] shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+          <div className="overflow-hidden rounded-3xl border border-[#E1E3E8] bg-white shadow-[0_12px_40px_rgba(20,20,40,0.06)]">
 
-            {/* Workspace header */}
-            <div className="border-b border-[#E1E1DD] px-6 py-5 sm:px-8">
-
-              <div className="flex items-center justify-between">
-
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#999991]">
-                    PDF Tool
-                  </p>
-
-                  <h2 className="mt-1.5 text-lg font-semibold">
-                    Combine your files
-                  </h2>
-                </div>
-
-                {files.length > 0 && (
-                  <span className="rounded-full border border-[#DCDDD7] bg-white px-3 py-1.5 text-xs font-medium text-[#666]">
-                    {files.length}{" "}
-                    {files.length === 1
-                      ? "file"
-                      : "files"}
-                  </span>
-                )}
-
-              </div>
-
-            </div>
-
-
-            {/* CONTENT */}
             <div className="p-5 sm:p-8">
 
-              {/* UPLOAD */}
-              <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D5D6D0] bg-white px-6 py-12 text-center transition hover:border-[#AFAFA9] hover:bg-[#FCFCFA]">
+              {/* UPLOAD AREA */}
+              <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#D9DBE3] bg-[#FAFAFC] px-5 py-12 text-center transition hover:border-[#B9B1F4] hover:bg-[#F7F5FF] sm:py-14">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ECEDE8] text-2xl font-medium text-[#444] transition group-hover:bg-[#171717] group-hover:text-white">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl text-[#5B4BDB] shadow-sm ring-1 ring-[#E1E3E8] transition group-hover:-translate-y-1">
                   +
                 </div>
 
-                <h3 className="mt-5 text-lg font-semibold">
-                  Add PDF files
-                </h3>
+                <h2 className="mt-6 text-xl font-semibold text-[#18181B]">
+                  Add your PDF files
+                </h2>
 
-                <p className="mt-2 text-sm text-[#777]">
-                  Select two or more PDF files to combine.
+                <p className="mt-2 max-w-md text-sm leading-6 text-[#777980]">
+                  Select two or more PDF files to combine into one document.
                 </p>
 
-                <span className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#171717] px-6 py-3.5 text-sm font-medium text-white transition group-hover:bg-[#303030]">
+                <span className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.18)] transition group-hover:-translate-y-0.5 group-hover:bg-[#4D3FC4]">
                   Choose PDF files
                   <span>↑</span>
                 </span>
@@ -265,43 +238,55 @@ export default function MergePdfPage() {
                   className="hidden"
                 />
 
-                <p className="mt-4 text-xs text-[#A0A09A]">
+                <p className="mt-4 text-xs text-[#999]">
                   PDF files only
                 </p>
 
               </label>
 
 
-              {/* ERROR WHEN NO FILE */}
-              {error && files.length === 0 && (
+              {/* ERROR */}
+              {error && (
                 <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-center text-sm text-red-600">
                   {error}
                 </div>
               )}
 
 
-              {/* FILES */}
+              {/* SELECTED FILES */}
               {files.length > 0 && (
-                <div className="mt-8">
+                <div className="mt-10">
 
                   {/* FILE HEADER */}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                     <div>
-                      <h3 className="text-lg font-semibold">
-                        Selected files
-                      </h3>
 
-                      <p className="mt-1 text-sm text-[#777]">
-                        Arrange the files in the order
-                        you want them merged.
+                      <div className="flex flex-wrap items-center gap-3">
+
+                        <h2 className="text-xl font-semibold tracking-tight text-[#18181B]">
+                          Selected files
+                        </h2>
+
+                        <span className="rounded-full bg-[#F1EFFF] px-3 py-1 text-xs font-semibold text-[#5B4BDB]">
+                          {files.length}{" "}
+                          {files.length === 1
+                            ? "file"
+                            : "files"}
+                        </span>
+
+                      </div>
+
+                      <p className="mt-2 text-sm leading-6 text-[#777980]">
+                        Arrange the files in the order you want them merged.
                       </p>
+
                     </div>
 
                     <button
                       type="button"
                       onClick={clearAll}
-                      className="self-start rounded-lg px-3 py-2 text-sm font-medium text-[#777] transition hover:bg-white hover:text-[#171717]"
+                      className="self-start rounded-lg px-3 py-2 text-sm font-medium text-[#666870] transition hover:bg-[#F3F3F5] hover:text-[#18181B] sm:self-auto"
                     >
                       Clear all
                     </button>
@@ -310,27 +295,27 @@ export default function MergePdfPage() {
 
 
                   {/* FILE LIST */}
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-7 space-y-3">
 
                     {files.map((item, index) => (
                       <div
                         key={item.id}
-                        className="group flex items-center gap-3 rounded-2xl border border-[#DCDDD7] bg-white p-4 transition hover:border-[#C5C6C0] hover:shadow-sm sm:gap-4"
+                        className="group flex items-center gap-3 rounded-2xl border border-[#E1E3E8] bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#D3CFFF] hover:shadow-[0_10px_25px_rgba(91,75,219,0.08)] sm:gap-4"
                       >
 
-                        {/* Number */}
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#171717] text-sm font-semibold text-white">
+                        {/* NUMBER */}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5B4BDB] text-sm font-semibold text-white">
                           {index + 1}
                         </div>
 
 
-                        {/* PDF */}
-                        <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ECEDE8] text-xs font-bold text-[#555] sm:flex">
+                        {/* PDF ICON */}
+                        <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB] sm:flex">
                           PDF
                         </div>
 
 
-                        {/* INFO */}
+                        {/* FILE INFO */}
                         <div className="min-w-0 flex-1">
 
                           <p className="truncate text-sm font-medium text-[#333]">
@@ -338,30 +323,22 @@ export default function MergePdfPage() {
                           </p>
 
                           <p className="mt-1 text-xs text-[#999]">
-                            {(
-                              item.file.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
+                            {(item.file.size / 1024 / 1024).toFixed(2)} MB
                           </p>
 
                         </div>
 
 
-                        {/* MOVE */}
+                        {/* MOVE BUTTONS */}
                         <div className="flex gap-1">
 
                           <button
                             type="button"
                             onClick={() =>
-                              moveFile(
-                                index,
-                                "up"
-                              )
+                              moveFile(index, "up")
                             }
                             disabled={index === 0}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DFDFDB] text-[#777] transition hover:bg-[#F7F7F5] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-25"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E1E3E8] text-[#777] transition hover:bg-[#F1EFFF] hover:text-[#5B4BDB] disabled:cursor-not-allowed disabled:opacity-25"
                             aria-label="Move file up"
                           >
                             ↑
@@ -370,16 +347,12 @@ export default function MergePdfPage() {
                           <button
                             type="button"
                             onClick={() =>
-                              moveFile(
-                                index,
-                                "down"
-                              )
+                              moveFile(index, "down")
                             }
                             disabled={
-                              index ===
-                              files.length - 1
+                              index === files.length - 1
                             }
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#DFDFDB] text-[#777] transition hover:bg-[#F7F7F5] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-25"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E1E3E8] text-[#777] transition hover:bg-[#F1EFFF] hover:text-[#5B4BDB] disabled:cursor-not-allowed disabled:opacity-25"
                             aria-label="Move file down"
                           >
                             ↓
@@ -394,7 +367,7 @@ export default function MergePdfPage() {
                           onClick={() =>
                             removeFile(item.id)
                           }
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg text-[#999] transition hover:bg-[#F3F3F0] hover:text-[#171717]"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg text-[#999] transition hover:bg-[#F3F3F5] hover:text-[#18181B]"
                           aria-label={`Remove ${item.file.name}`}
                         >
                           ×
@@ -406,32 +379,25 @@ export default function MergePdfPage() {
                   </div>
 
 
-                  {/* ERROR */}
-                  {error && (
-                    <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
-                      {error}
-                    </div>
-                  )}
+                  {/* READY INFO */}
+                  <div className="mt-8 rounded-2xl border border-[#E3E1FA] bg-[#F7F5FF] p-5">
 
+                    <div className="flex gap-3">
 
-                  {/* READY MESSAGE */}
-                  <div className="mt-6 rounded-2xl border border-[#DCDDD7] bg-white p-5">
-
-                    <div className="flex items-start gap-3">
-
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#ECEDE8] text-sm text-[#555]">
-                        ✓
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sm text-[#5B4BDB] shadow-sm ring-1 ring-[#E1DFFC]">
+                        ✦
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-[#333]">
+
+                        <p className="text-sm font-semibold text-[#333]">
                           Ready to merge
                         </p>
 
-                        <p className="mt-1 text-sm leading-6 text-[#777]">
-                          Your PDFs will be combined
-                          in the order shown above.
+                        <p className="mt-1 text-sm leading-6 text-[#777980]">
+                          Your PDFs will be combined in the order shown above.
                         </p>
+
                       </div>
 
                     </div>
@@ -447,12 +413,12 @@ export default function MergePdfPage() {
                       files.length < 2 ||
                       isMerging
                     }
-                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#171717] px-6 py-4 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#D9D9D5] disabled:text-[#999] disabled:shadow-none"
+                    className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(91,75,219,0.16)] transition hover:-translate-y-0.5 hover:bg-[#4D3FC4] hover:shadow-md disabled:cursor-not-allowed disabled:bg-[#E5E5E7] disabled:text-[#999] disabled:shadow-none"
                   >
 
                     {isMerging ? (
                       <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#777] border-t-white" />
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                         Merging PDFs...
                       </>
                     ) : (
@@ -472,52 +438,118 @@ export default function MergePdfPage() {
           </div>
 
 
-          {/* TRUST */}
-          <div className="mt-7 flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs text-[#888]">
-            <span>✓ Browser processing</span>
-            <span>✓ No account</span>
-            <span>✓ Free to use</span>
-            <span>✓ No watermark</span>
+          {/* PRIVACY */}
+          <div className="mt-7 flex items-center justify-center gap-2 px-4 text-center text-xs leading-5 text-[#999]">
+
+            <span className="text-emerald-500">
+              ✓
+            </span>
+
+            <span>
+              Your PDF files are processed directly in your browser and are
+              not uploaded to our server.
+            </span>
+
           </div>
 
-        </div>
 
-      </section>
+          {/* HOW IT WORKS */}
+          <div className="mt-16 border-t border-[#E3E5EA] pt-14">
+
+            <div className="text-center">
+
+              <p className="text-sm font-semibold text-[#5B4BDB]">
+                HOW IT WORKS
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#18181B]">
+                Merge PDFs in three simple steps
+              </h2>
+
+            </div>
 
 
-      {/* PRIVACY */}
-      <section
-        id="privacy"
-        className="bg-white px-6 py-14 sm:py-16"
-      >
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
 
-        <div className="mx-auto max-w-6xl">
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
 
-          <div className="rounded-3xl border border-[#E2E2DE] bg-[#F7F7F5] p-8 sm:p-10">
-
-            <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-
-              <div className="max-w-2xl">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#171717] text-sm font-medium text-white">
-                  ✓
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  01
                 </div>
 
-                <h2 className="mt-5 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  Your files stay yours.
-                </h2>
+                <h3 className="mt-4 text-sm font-semibold">
+                  Select PDFs
+                </h3>
 
-                <p className="mt-3 text-sm leading-7 text-[#666] sm:text-base">
-                  Your PDF files are processed directly
-                  in your browser. They are not uploaded
-                  to our server for merging.
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Choose two or more PDF files from your device.
                 </p>
 
               </div>
 
-              <div className="shrink-0 rounded-xl border border-[#DCDDD7] bg-white px-4 py-3 text-xs font-medium text-[#777]">
-                Private by design
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  02
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Arrange files
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Move your files up or down to choose the final order.
+                </p>
+
               </div>
+
+
+              <div className="rounded-2xl border border-[#E1E3E8] bg-white p-6 text-center">
+
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#F1EFFF] text-xs font-bold text-[#5B4BDB]">
+                  03
+                </div>
+
+                <h3 className="mt-4 text-sm font-semibold">
+                  Merge & download
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#777980]">
+                  Merge your PDFs and download the finished document.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* RELATED TOOLS */}
+          <div className="mt-14 rounded-2xl border border-[#E1E3E8] bg-white p-6 sm:p-7">
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+
+                <h2 className="text-lg font-semibold text-[#18181B]">
+                  Need another PDF tool?
+                </h2>
+
+                <p className="mt-1 text-sm text-[#777980]">
+                  Explore more free tools from SimplePDF.
+                </p>
+
+              </div>
+
+              <Link
+                href="/#tools"
+                className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#F1EFFF] px-4 py-2.5 text-sm font-medium text-[#5B4BDB] transition hover:bg-[#E8E4FF]"
+              >
+                View all tools
+                <span>→</span>
+              </Link>
 
             </div>
 
@@ -529,27 +561,34 @@ export default function MergePdfPage() {
 
 
       {/* FOOTER */}
-      <footer className="border-t border-[#E2E2DE] bg-[#F7F7F5] px-6 py-8">
+      <footer className="border-t border-[#E2E4E8] bg-[#202124] px-5 py-9 text-white sm:px-6">
 
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[#888] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto max-w-6xl">
 
-          <Link
-            href="/"
-            className="font-semibold text-[#333]"
-          >
-            SimplePDF
-          </Link>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-          <Link
-            href="/#tools"
-            className="transition hover:text-[#171717]"
-          >
-            All tools
-          </Link>
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 font-semibold"
+            >
 
-          <span>
-            © {new Date().getFullYear()} SimplePDF
-          </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5B4BDB] text-xs font-bold">
+                S
+              </span>
+
+              SimplePDF
+
+            </Link>
+
+            <p className="text-sm text-white/45">
+              Simple tools for everyday PDF work.
+            </p>
+
+            <p className="text-sm text-white/35">
+              © {new Date().getFullYear()} SimplePDF
+            </p>
+
+          </div>
 
         </div>
 

@@ -158,6 +158,32 @@ function ToolIcon({ type }: { type: string }) {
   );
 }
 
+function getToolStyle(type: string) {
+  const styles = {
+    merge: "bg-violet-50 text-violet-600",
+    split: "bg-blue-50 text-blue-600",
+    rotate: "bg-rose-50 text-rose-600",
+    jpg: "bg-amber-50 text-amber-600",
+    pdf: "bg-sky-50 text-sky-600",
+    compress: "bg-emerald-50 text-emerald-600",
+  };
+
+  return styles[type as keyof typeof styles] || styles.merge;
+}
+
+function getTopLineStyle(type: string) {
+  const styles = {
+    merge: "bg-violet-500",
+    split: "bg-blue-500",
+    rotate: "bg-rose-500",
+    jpg: "bg-amber-500",
+    pdf: "bg-sky-500",
+    compress: "bg-emerald-500",
+  };
+
+  return styles[type as keyof typeof styles] || styles.merge;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"all" | Category>("all");
 
@@ -167,299 +193,508 @@ export default function Home() {
       : tools.filter((tool) => tool.category === activeTab);
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] text-[#171717]">
+    <main className="min-h-screen bg-[#F7F8FC] text-[#18181B]">
 
-     {/* NAVBAR */}
-<header className="sticky top-0 z-50 border-b border-[#E5E5E2] bg-[#F7F7F5]/95 backdrop-blur">
-  <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-6">
 
-    <Link href="/" className="flex items-center gap-2.5">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#171717] text-xs font-bold text-white">
-        S
-      </div>
-
-      <span className="text-[18px] font-semibold tracking-tight">
-        SimplePDF
-      </span>
-    </Link>
-
-    <a
-      href="#tools"
-      className="text-sm font-medium text-[#666] transition hover:text-[#171717]"
-    >
-      Tools
-    </a>
-
-  </div>
-</header>
-{/* HERO */}
-<section className="px-6 pb-14 pt-8 sm:pb-20 sm:pt-12">
-  <div className="mx-auto max-w-4xl text-center">
-
-    <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-[#DFDFDB] bg-white px-4 py-2 text-xs font-medium text-[#666] shadow-sm">
-      <span className="h-1.5 w-1.5 rounded-full bg-[#171717]" />
-      Simple PDF tools
-    </div>
-
-    <h1 className="mt-6 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-      PDF work,
-      <br />
-      <span className="text-[#999]">made simple.</span>
-    </h1>
-
-    <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#666] sm:text-lg">
-      Simple tools for merging, splitting, converting,
-      compressing and rotating your PDF files.
-    </p>
-
-    <div className="mt-7 flex flex-wrap justify-center gap-3">
-      <a
-        href="#tools"
-        className="rounded-xl bg-[#171717] px-6 py-3.5 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#303030]"
-      >
-        Explore tools
-      </a>
-
-      <a
-        href="#privacy"
-        className="rounded-xl border border-[#DEDED9] bg-white px-6 py-3.5 text-sm font-medium text-[#555] transition hover:border-[#CFCFC9] hover:bg-[#FAFAF8]"
-      >
-        Privacy first
-      </a>
-    </div>
-
-    <div className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-[#999]">
-      <span>✓ No account required</span>
-      <span>✓ Free to use</span>
-      <span>✓ Browser based</span>
-    </div>
-
-  </div>
-</section>
-  
-      {/* PRODUCT / TOOLS */}
-      <section
-        id="tools"
-        className="border-y border-[#E1E1DD] bg-[#ECEDE8] px-6 py-16 sm:py-20"
-      >
-        <div className="mx-auto max-w-6xl">
-
-          {/* Section heading */}
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A8A84]">
-                SimplePDF Tools
-              </p>
-
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Choose what you need.
-              </h2>
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5B4BDB] text-sm font-bold text-white shadow-sm">
+              S
             </div>
 
-            <p className="max-w-sm text-sm leading-6 text-[#777] sm:text-right">
-              Everything you need for everyday PDF work,
-              without unnecessary features.
+            <span className="text-[18px] font-semibold tracking-tight text-[#18181B]">
+              SimplePDF
+            </span>
+          </Link>
+
+          <nav className="flex items-center gap-6">
+            <a
+              href="#tools"
+              className="text-sm font-medium text-[#666] transition hover:text-[#5B4BDB]"
+            >
+              Tools
+            </a>
+
+            <a
+              href="#how-it-works"
+              className="hidden text-sm font-medium text-[#666] transition hover:text-[#5B4BDB] sm:block"
+            >
+              How it works
+            </a>
+
+            <a
+              href="#privacy"
+              className="hidden text-sm font-medium text-[#666] transition hover:text-[#5B4BDB] sm:block"
+            >
+              Privacy
+            </a>
+          </nav>
+
+        </div>
+      </header>
+
+
+      {/* HERO */}
+      <section className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F3F0FF] via-white to-[#EFF7FF] px-5 py-16 sm:px-6 sm:py-20">
+
+        <div className="mx-auto max-w-4xl text-center">
+
+          <div className="mx-auto mb-5 flex w-fit items-center gap-2 rounded-full border border-[#DDD8FF] bg-white px-4 py-2 text-xs font-medium text-[#5B4BDB] shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-[#5B4BDB]" />
+            Free PDF tools
+          </div>
+
+          <h1 className="text-4xl font-semibold tracking-tight text-[#18181B] sm:text-5xl lg:text-6xl">
+            Free PDF tools.
+            <span className="block text-[#5B4BDB]">
+              Simple, private, and fast.
+            </span>
+          </h1>
+
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#70727A] sm:text-base">
+            Merge, split, convert, rotate and compress PDF files directly
+            in your browser. No complicated setup. No account required.
+          </p>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-[#666870]">
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Free to use
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              No signup
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-[#5B4BDB]">✓</span>
+              Browser based
+            </span>
+          </div>
+
+          <a
+            href="#tools"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#5B4BDB] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(91,75,219,0.22)] transition hover:-translate-y-0.5 hover:bg-[#4E3FC7]"
+          >
+            Explore PDF tools
+            <span>↓</span>
+          </a>
+
+        </div>
+
+      </section>
+
+
+      {/* TOOLS */}
+      <section id="tools" className="px-5 py-14 sm:px-6 sm:py-18">
+
+        <div className="mx-auto max-w-6xl">
+
+          {/* SECTION HEADING */}
+          <div className="mb-8">
+            <p className="text-sm font-semibold text-[#5B4BDB]">
+              PDF TOOLS
+            </p>
+
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#18181B] sm:text-3xl">
+              Everything you need for everyday PDFs
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#70727A]">
+              Simple tools for working with PDF files without unnecessary
+              steps.
+            </p>
+          </div>
+
+
+          {/* CATEGORY NAVIGATION */}
+          <div className="mb-8 flex flex-wrap items-center gap-2 border-b border-[#E1E3E8] pb-4">
+
+            {tabs.map((tab) => {
+              const active = activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`rounded-lg px-5 py-2.5 text-sm font-medium transition ${
+                    active
+                      ? "bg-[#5B4BDB] text-white shadow-sm"
+                      : "text-[#666] hover:bg-[#F1EFFF] hover:text-[#5B4BDB]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+
+          </div>
+
+
+          {/* PRODUCT GRID */}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+            {filteredTools.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group relative overflow-hidden rounded-2xl border border-[#E1E3E8] bg-white p-6 shadow-[0_3px_12px_rgba(20,20,40,0.03)] transition duration-200 hover:-translate-y-1 hover:border-[#D3CFFF] hover:shadow-[0_14px_32px_rgba(91,75,219,0.10)]"
+              >
+
+                {/* TOP COLOR LINE */}
+                <div
+                  className={`absolute left-0 right-0 top-0 h-[3px] ${getTopLineStyle(
+                    tool.icon
+                  )}`}
+                />
+
+                <div className="flex items-center justify-between">
+
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${getToolStyle(
+                      tool.icon
+                    )}`}
+                  >
+                    <ToolIcon type={tool.icon} />
+                  </div>
+
+                  <span className="text-lg text-[#B8BAC2] transition duration-200 group-hover:translate-x-1 group-hover:text-[#5B4BDB]">
+                    →
+                  </span>
+
+                </div>
+
+                <h3 className="mt-6 text-lg font-semibold tracking-tight text-[#18181B]">
+                  {tool.title}
+                </h3>
+
+                <p className="mt-2 min-h-[48px] text-sm leading-6 text-[#70727A]">
+                  {tool.description}
+                </p>
+
+                <div className="mt-6 text-sm font-medium text-[#777980] transition group-hover:text-[#5B4BDB]">
+                  Use tool
+                  <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+              </Link>
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* PRIVACY SECTION */}
+      <section
+        id="privacy"
+        className="border-y border-[#E3E5EA] bg-white px-5 py-14 sm:px-6 sm:py-16"
+      >
+
+        <div className="mx-auto max-w-5xl">
+
+          <div className="mx-auto max-w-2xl text-center">
+
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1EFFF] text-xl">
+              🔒
+            </div>
+
+            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-[#18181B] sm:text-3xl">
+              Your files stay private
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-[#70727A] sm:text-base">
+              SimplePDF processes your files directly in your browser.
+              Your documents do not need to be uploaded to our servers.
             </p>
 
           </div>
 
-          {/* Product box */}
-          <div className="overflow-hidden rounded-3xl border border-[#D8D9D3] bg-[#F8F8F6] shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
 
-            {/* Tabs */}
-            <div className="border-b border-[#DFE0DA] bg-[#F3F4F0] px-5 pt-5 sm:px-7">
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
 
-              <div className="flex gap-2 overflow-x-auto">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAFC] p-6 text-center">
+              <div className="text-2xl">🔒</div>
 
-                {tabs.map((tab) => {
-                  const active = activeTab === tab.id;
+              <h3 className="mt-4 font-semibold text-[#18181B]">
+                Private
+              </h3>
 
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`shrink-0 rounded-t-xl px-5 py-3 text-sm font-medium transition ${
-                        active
-                          ? "bg-[#F8F8F6] text-[#171717] shadow-[0_-1px_0_#D8D9D3]"
-                          : "text-[#777] hover:text-[#171717]"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
-
-              </div>
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Your files are processed in your browser.
+              </p>
             </div>
 
-            {/* Product header */}
-            <div className="border-b border-[#E2E2DE] px-6 py-6 sm:px-8">
 
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAFC] p-6 text-center">
+              <div className="text-2xl">⚡</div>
 
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    PDF Tools
-                  </h3>
+              <h3 className="mt-4 font-semibold text-[#18181B]">
+                Fast
+              </h3>
 
-                  <p className="mt-1 text-sm text-[#777]">
-                    Select a tool to get started.
-                  </p>
-                </div>
-
-                <span className="hidden rounded-full border border-[#DCDDD7] bg-white px-3 py-1.5 text-xs font-medium text-[#777] sm:block">
-                  {filteredTools.length} tools
-                </span>
-
-              </div>
-
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Process your files without waiting for uploads.
+              </p>
             </div>
 
-            {/* Cards */}
-            <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-7 lg:grid-cols-3">
 
-              {filteredTools.map((tool) => (
-                <Link
-                  key={tool.href}
-                  href={tool.href}
-                  className="group rounded-2xl border border-[#DCDDD7] bg-white p-6 transition duration-200 hover:-translate-y-1 hover:border-[#BEBFB9] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)]"
-                >
+            <div className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAFC] p-6 text-center">
+              <div className="text-2xl">✓</div>
 
-                  {/* Icon */}
-                  <div className="flex items-center justify-between">
+              <h3 className="mt-4 font-semibold text-[#18181B]">
+                No signup
+              </h3>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ECEDE8] text-[#30302E] transition group-hover:bg-[#171717] group-hover:text-white">
-                      <ToolIcon type={tool.icon} />
-                    </div>
-
-                    <span className="text-lg text-[#B2B2AC] transition group-hover:translate-x-1 group-hover:text-[#171717]">
-                      →
-                    </span>
-
-                  </div>
-
-                  {/* Text */}
-                  <h3 className="mt-6 text-lg font-semibold tracking-tight">
-                    {tool.title}
-                  </h3>
-
-                  <p className="mt-2 min-h-[48px] text-sm leading-6 text-[#70706B]">
-                    {tool.description}
-                  </p>
-
-                  {/* Action */}
-                  <div className="mt-6 flex items-center text-sm font-medium text-[#777] transition group-hover:text-[#171717]">
-                    Use tool
-                    <span className="ml-2 transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
-                  </div>
-
-                </Link>
-              ))}
-
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Start using the tools without creating an account.
+              </p>
             </div>
 
-          </div>
-
-          {/* Small trust line */}
-          <div className="mt-7 flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs text-[#888]">
-            <span>✓ Free</span>
-            <span>✓ No signup</span>
-            <span>✓ No watermark</span>
-            <span>✓ Browser processing</span>
           </div>
 
         </div>
+
       </section>
 
-      {/* PRIVACY */}
+
+      {/* HOW IT WORKS */}
       <section
-        id="privacy"
-        className="bg-white px-6 py-16 sm:py-20"
+        id="how-it-works"
+        className="px-5 py-14 sm:px-6 sm:py-16"
       >
+
         <div className="mx-auto max-w-6xl">
 
-          <div className="rounded-3xl border border-[#E2E2DE] bg-[#F7F7F5] p-8 sm:p-10">
+          <div className="text-center">
 
-            <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-[#5B4BDB]">
+              HOW IT WORKS
+            </p>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#171717] text-white">
-                ✓
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#18181B] sm:text-3xl">
+              Simple from start to finish
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#70727A]">
+              No complicated process. Choose a tool, process your file,
+              and download the result.
+            </p>
+
+          </div>
+
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+
+            {/* STEP 1 */}
+            <div className="relative rounded-2xl border border-[#E1E3E8] bg-white p-7 text-center shadow-[0_3px_12px_rgba(20,20,40,0.03)]">
+
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F1EFFF] text-sm font-bold text-[#5B4BDB]">
+                01
               </div>
 
-              <h2 className="mt-6 text-3xl font-semibold tracking-tight">
-                Your files stay yours.
-              </h2>
+              <h3 className="mt-5 text-lg font-semibold">
+                Choose a tool
+              </h3>
 
-              <p className="mt-4 text-base leading-7 text-[#666]">
-                SimplePDF is designed around straightforward,
-                browser-based document processing. Wherever possible,
-                your files are processed directly on your device.
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Select the PDF tool that matches what you want to do.
               </p>
 
             </div>
 
-            <div className="mt-10 grid gap-6 border-t border-[#E1E1DD] pt-8 sm:grid-cols-3">
 
-              <div>
-                <p className="font-medium">
-                  Browser based
-                </p>
+            {/* STEP 2 */}
+            <div className="relative rounded-2xl border border-[#E1E3E8] bg-white p-7 text-center shadow-[0_3px_12px_rgba(20,20,40,0.03)]">
 
-                <p className="mt-2 text-sm leading-6 text-[#777]">
-                  Work with your files directly in your browser.
-                </p>
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F1EFFF] text-sm font-bold text-[#5B4BDB]">
+                02
               </div>
 
-              <div>
-                <p className="font-medium">
-                  No account
-                </p>
+              <h3 className="mt-5 text-lg font-semibold">
+                Process your file
+              </h3>
 
-                <p className="mt-2 text-sm leading-6 text-[#777]">
-                  Open a tool and start working immediately.
-                </p>
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Upload your file and let the browser process it.
+              </p>
+
+            </div>
+
+
+            {/* STEP 3 */}
+            <div className="relative rounded-2xl border border-[#E1E3E8] bg-white p-7 text-center shadow-[0_3px_12px_rgba(20,20,40,0.03)]">
+
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F1EFFF] text-sm font-bold text-[#5B4BDB]">
+                03
               </div>
 
-              <div>
-                <p className="font-medium">
-                  Simple by design
-                </p>
+              <h3 className="mt-5 text-lg font-semibold">
+                Download your result
+              </h3>
 
-                <p className="mt-2 text-sm leading-6 text-[#777]">
-                  No unnecessary steps or complicated interfaces.
-                </p>
-              </div>
+              <p className="mt-2 text-sm leading-6 text-[#70727A]">
+                Download your finished file and continue with your work.
+              </p>
 
             </div>
 
           </div>
 
         </div>
+
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-[#E2E2DE] bg-[#F7F7F5] px-6 py-8">
 
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[#888] sm:flex-row sm:items-center sm:justify-between">
+      {/* FINAL CTA */}
+      <section className="px-5 pb-16 sm:px-6 sm:pb-20">
 
-          <Link
-            href="/"
-            className="font-semibold text-[#333]"
+        <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-[#202124] px-6 py-12 text-center text-white sm:px-10">
+
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Ready to work with your PDF?
+          </h2>
+
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-base">
+            Choose a tool and get started. SimplePDF is free and easy to use.
+          </p>
+
+          <a
+            href="#tools"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#202124] transition hover:-translate-y-0.5 hover:bg-[#F3F3F3]"
           >
-            SimplePDF
-          </Link>
+            Explore tools
+            <span>↓</span>
+          </a>
 
-          <span>
-            Simple tools for everyday PDF work.
-          </span>
+        </div>
 
-          <span>
-            © {new Date().getFullYear()} SimplePDF
-          </span>
+      </section>
+
+
+      {/* FOOTER */}
+      <footer className="border-t border-[#E2E4E8] bg-[#202124] px-5 py-10 text-white sm:px-6">
+
+        <div className="mx-auto max-w-6xl">
+
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+
+            {/* BRAND */}
+            <div>
+
+              <Link href="/" className="flex items-center gap-2.5">
+
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5B4BDB] text-xs font-bold text-white">
+                  S
+                </div>
+
+                <span className="font-semibold">
+                  SimplePDF
+                </span>
+
+              </Link>
+
+              <p className="mt-3 max-w-xs text-sm leading-6 text-white/45">
+                Simple tools for everyday PDF work, built with privacy in mind.
+              </p>
+
+            </div>
+
+
+            {/* LINKS */}
+            <div className="flex gap-14">
+
+              <div>
+                <h3 className="text-sm font-semibold text-white">
+                  Tools
+                </h3>
+
+                <div className="mt-3 flex flex-col gap-2.5 text-sm text-white/50">
+
+                  <Link
+                    href="/merge-pdf"
+                    className="transition hover:text-white"
+                  >
+                    Merge PDF
+                  </Link>
+
+                  <Link
+                    href="/split-pdf"
+                    className="transition hover:text-white"
+                  >
+                    Split PDF
+                  </Link>
+
+                  <Link
+                    href="/jpg-to-pdf"
+                    className="transition hover:text-white"
+                  >
+                    JPG to PDF
+                  </Link>
+
+                  <Link
+                    href="/pdf-to-jpg"
+                    className="transition hover:text-white"
+                  >
+                    PDF to JPG
+                  </Link>
+
+                </div>
+              </div>
+
+
+              <div>
+                <h3 className="text-sm font-semibold text-white">
+                  More
+                </h3>
+
+                <div className="mt-3 flex flex-col gap-2.5 text-sm text-white/50">
+
+                  <Link
+                    href="/compress-pdf"
+                    className="transition hover:text-white"
+                  >
+                    Compress PDF
+                  </Link>
+
+                  <Link
+                    href="/rotate-pdf"
+                    className="transition hover:text-white"
+                  >
+                    Rotate PDF
+                  </Link>
+
+                  <a
+                    href="#privacy"
+                    className="transition hover:text-white"
+                  >
+                    Privacy
+                  </a>
+
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* COPYRIGHT */}
+          <div className="mt-9 border-t border-white/10 pt-6">
+
+            <p className="text-sm text-white/35">
+              © {new Date().getFullYear()} SimplePDF. All rights reserved.
+            </p>
+
+          </div>
 
         </div>
 
