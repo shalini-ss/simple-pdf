@@ -132,25 +132,20 @@ There is no user account system, database, or server-side file-storage system in
 | Compress PDF | Reduce PDF file size                |
 
 ---
+## 📸 Screenshots
 
-## 🎥 Demo
+### Home Page
 
-[▶️ Watch SimplePDF Demo](./demo/video.mp4)
+![SimplePDF Home Page](./demo/home.png)
 
+### Merge PDF
 
----
+![Merge PDF](./demo/merge-pdf.png)
 
-## 🎥 Demo
+### JPG to PDF
 
-Add a short GIF demonstrating the workflow:
+![JPG to PDF](./demo/jpg-to-pdf.png)
 
-```text
-Upload → Process → Download
-```
-
-Example:
-
-![SimplePDF Demo](./demo.gif.mp4)
 
 ---
 
